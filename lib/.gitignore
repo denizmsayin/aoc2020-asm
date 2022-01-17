@@ -1,3 +1,5 @@
 *_test
 *.o
 a.out
+*.swp
+.gdb_history

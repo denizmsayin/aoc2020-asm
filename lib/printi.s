@@ -5,24 +5,6 @@
     .global main
 
     .text
-slen:
-    # String length.
-    # %rdi has the string.
-    mov %rdi, %rax
-    mov (%rax), %r11
-    jmp slen_check
-slen_loop:
-    add $1, %rax
-    mov (%rax), %r11
-slen_check:
-    and %r11, %r11
-    jne slen_loop
-    
-    
-
-fputstr:
-    # The most basic thing, for printing a string.
-    # %rdi has fd, %rsi has zero terminated buffer.
 
 putint:
     # Print a long int to the given file. fd in %rdi, value in %rsi

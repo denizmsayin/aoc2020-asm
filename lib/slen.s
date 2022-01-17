@@ -1,9 +1,9 @@
     .global slen
-    .global main
     
     .text
 # String length.
 # %rdi has the string.
+# %r11 is clobbered.
 slen:
     mov %rdi, %rax
     movb (%rax), %r11b
