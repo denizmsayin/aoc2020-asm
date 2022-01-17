@@ -1,11 +1,16 @@
-all: slen_test putstr_test printi_test
+all: slen_test putstr_test printi_test reader_test
 
-slen_test: slen_test.s slen.o
+slen_test: slen_test.o slen.o
 
 putstr.o: slen.o
 
-putstr_test: putstr_test.s putstr.o slen.o
+putstr_test: putstr_test.o putstr.o slen.o
 
-printi.o : putstr.o slen.o
+printi.o: putstr.o slen.o
 
-printi_test: printi_test.s printi.o putstr.o slen.o
+printi_test: printi_test.o printi.o putstr.o slen.o
+
+reader_test: reader_test.o reader.o printi.o putstr.o slen.o
+
+clean:
+	rm -f *.o *_test
