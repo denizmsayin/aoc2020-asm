@@ -3,3 +3,4 @@
 a.out
 *.swp
 .gdb_history
+*.a

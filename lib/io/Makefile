@@ -1,4 +1,7 @@
-all: slen_test putstr_test printi_test reader_test geti_test
+all: iolib.a slen_test putstr_test printi_test reader_test geti_test
+
+iolib.a: geti.o printi.o reader.o putstr.o slen.o
+	ar rcs $@ $^
 
 slen_test: slen_test.o slen.o
 
