@@ -1,7 +1,14 @@
     .global getc
     .global peekc
+    .global advc
 
     .text
+advc:
+    mov bufferpos(%rip), %rax
+    inc %rax
+    movq %rax, bufferpos(%rip)
+    ret
+
 peekc:
     call ensurebuffer
 .Lpeekc_ensure_ret:
@@ -17,7 +24,7 @@ getc:
     lea buffer(%rip), %r11
     mov bufferpos(%rip), %rax
     inc %rax
-    mov %rax, bufferpos(%rip)
+    movq %rax, bufferpos(%rip)
     dec %rax
     add %rax, %r11
     xor %rax, %rax

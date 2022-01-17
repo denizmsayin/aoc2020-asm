@@ -57,8 +57,7 @@ putint:
 fprinti:
     push %rbp               # classic prologue
     mov %rsp, %rbp          # save rsp into rbp
-    mov %rsp, %r8           # 512-byte array as a buffer
-    sub $0x200, %r8
+    lea -0x400(%rsp), %r8   # 1024-byte stack array as print buffer
     add $16, %rsp           # move rsp up to avoid return address while popping
     mov %r8, %r10           # Save the start of the buffer
     jmp .Lfprinti_check
