@@ -59,4 +59,5 @@ geti:
 .Lout:
     imul %r9, %r8 # sign multiplier
     mov %r8, %rax
+    clc
     ret

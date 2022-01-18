@@ -13,6 +13,7 @@ putint:
     jne .Lputint_nonzero
     # Zero case, just write a zero
     movb $'0', (%r8)
+    inc %r8
     ret
 .Lputint_nonzero: # add - to the array and negate
     jg .Lputint_positive # Positive

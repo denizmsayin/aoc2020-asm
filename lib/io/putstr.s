@@ -15,7 +15,7 @@ fputstr:
     mov %rdi, %rsi
     mov %r9, %rdi
     mov $1, %rax
-    syscall
+    syscall # write(1, buf, slen(buf))
     ret
 
 # Print a string to stdout.
