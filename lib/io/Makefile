@@ -1,6 +1,6 @@
-all: iolib.a slen_test putstr_test printi_test reader_test geti_test part2set_test getstr_test
+all: iolib.a slen_test putstr_test printi_test reader_test geti_test part2set_test getstr_test getgrid_test
 
-iolib.a: getstr.o part2set.o getia.o geti.o printi.o reader.o putstr.o slen.o skipwhite.o
+iolib.a: getgrid.o getstr.o part2set.o getia.o geti.o printi.o reader.o putstr.o slen.o skipwhite.o
 	ar rcs $@ $^
 
 slen_test: slen_test.o slen.o
@@ -26,6 +26,10 @@ getstr.o: reader.o
 getstr_test: getstr_test.o getstr.o reader.o printi.o putstr.o slen.o
 
 skipwhite.o: reader.o
+
+getgrid.o: reader.o
+
+getgrid_test: getgrid_test.o getgrid.o reader.o printi.o putstr.o slen.o
 
 clean:
 	rm -f *.o *_test
