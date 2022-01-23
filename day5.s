@@ -2,6 +2,7 @@
 
     .extern getline
     .extern printi
+    .extern part2set
 
 # %rdi: string holding binary search
 # %rsi: lower limit
@@ -35,12 +36,16 @@ findmid:
 
 main:
     xor %r13, %r13 # holds max    
+    lea seat_full(%rip), %r14 # holds existing seats array address
+    xor %r15, %r15
+    call part2set
+    setc %r15b # r15 set if part2
  
 .Lnextline:
     lea buf(%rip), %rdi
     mov $4096, %rsi
     call getline
-    jc .Lend
+    jc .Lnolinesleft
 
     lea buf(%rip), %rdi
     mov $0, %rsi
@@ -58,9 +63,37 @@ main:
     call findmid
     lea (%rax, %r12, 8), %rax # id = 8 * row ID + col ID
 
+    # update max
     cmp %r13, %rax
     cmovg %rax, %r13
+
+    # mark seat full
+    lea (%r14, %rax), %r11
+    movb $1, (%r11)
+
     jmp .Lnextline
+
+.Lnolinesleft:
+    # For part 1: print max
+    test %r15b, %r15b
+    je .Lend
+
+    # For part 2, need to find 0 element; start from max and head back
+    lea (%r14, %r13), %r11
+    lea seat_full(%rip), %r10
+    jmp .Lbackcheck
+
+.Lbackloop:
+    cmpb $0, (%r11) # current value unmarked?
+    jne .Lnotfound
+    mov %r11, %r13 # found value! r11 - r10 gives the current ID
+    sub %r10, %r13
+    jmp .Lend
+.Lnotfound:
+    dec %r11 # keep searching
+.Lbackcheck:
+    cmp %r10, %r11
+    jne .Lbackloop
 
 .Lend:
     push %r13
@@ -73,3 +106,4 @@ main:
 fmt: .string "@\n"
     .data
 buf: .fill 4096
+seat_full: .fill 1024 # at most 1024 seats
