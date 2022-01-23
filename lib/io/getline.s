@@ -7,7 +7,7 @@
 # %rdi: Pointer to target buffer
 # %rsi: Size limit
 # -> %rax: Size of read string. 0 would imply nothing is left.
-# Carry register set if ended on EOF, else cleared.
+# Carry flag set if ended on EOF, else cleared.
 getline:
     xor %rax, %rax
 

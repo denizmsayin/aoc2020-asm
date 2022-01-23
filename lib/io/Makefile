@@ -1,9 +1,9 @@
-all: iolib.a slen_test putstr_test printi_test reader_test geti_test part2set_test getstr_test getgrid_test getline_test
+VPATH=$(shell find .. -type d)
+
+all: iolib.a putstr_test printi_test reader_test geti_test part2set_test getstr_test getgrid_test getline_test
 
 iolib.a: getline.o getgrid.o getstr.o part2set.o getia.o geti.o printi.o reader.o putstr.o slen.o skipwhite.o
 	ar rcs $@ $^
-
-slen_test: slen_test.o slen.o
 
 putstr.o: slen.o
 
