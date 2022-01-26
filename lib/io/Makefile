@@ -1,8 +1,8 @@
 VPATH=$(shell find .. -type d)
 
-all: iolib.a putstr_test printi_test reader_test geti_test part2set_test getstr_test getgrid_test getline_test
+all: iolib.a putstr_test printi_test reader_test geti_test part2set_test getstr_test getgrid_test getline_test skipstr_test
 
-iolib.a: getline.o getgrid.o getstr.o part2set.o getia.o geti.o printi.o reader.o putstr.o slen.o skipwhite.o
+iolib.a: skipstr.o getline.o getgrid.o getstr.o part2set.o getia.o geti.o printi.o reader.o putstr.o slen.o skipwhite.o
 	ar rcs $@ $^
 
 putstr.o: slen.o
@@ -34,6 +34,8 @@ getgrid_test: getgrid_test.o getgrid.o reader.o printi.o putstr.o slen.o
 getline.o: reader.o
 
 getline_test: getline_test.o getline.o reader.o printi.o putstr.o slen.o
+
+skipstr_test: skipstr_test.o skipstr.o getline.o reader.o putstr.o slen.o
 
 clean:
 	rm -f *.o *_test
