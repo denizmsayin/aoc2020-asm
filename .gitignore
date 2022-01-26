@@ -1,6 +1,8 @@
 day?
 day??
 *.o
-*.txt
 *.swp
+*.txt
+!input/*.txt
+!output/*.txt
 .gdb_history
