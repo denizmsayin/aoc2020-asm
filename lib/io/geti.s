@@ -6,9 +6,6 @@
     .text
 # Read int from stdin, return in %rax.
 # Set CF if there are no more ints left.
-# Kind of slow since peekc/getc are a bit
-# redundant, but that could be optimized easily
-# with a new function like like advc to incr.
 geti:
     xor %r8, %r8 # use as accumulator
     clc # clear CF, used to signal no more input
@@ -26,6 +23,8 @@ geti:
 .Lnotend:
     cmp $'-', %rax
     je .Lskipdone
+    cmp $'+', %rax
+    je .Lskipdone
     cmp $'0', %rax
     jl .Lskiploop    
     cmp $'9', %rax
@@ -35,10 +34,14 @@ geti:
     # Continue with a sign check
 .Lexists:
     mov $1, %r9 # multiplier for final value
+    cmp $'+', %rax
+    je .Lsign
     cmp $'-', %rax
     jne .Lcheck
-    call advc
+.Lnotminus:
     mov $-1, %r9
+.Lsign:
+    call advc
     jmp .Lnext
 
     # Loop for accumulating
