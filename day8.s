@@ -3,6 +3,8 @@
     .extern getstr
     .extern geti
     .extern printi
+    .extern part2set
+    .extern blkset
 
 # To be able to 'run' the program, I need an internal representation.
 # A 4-byte struct for each instruction: { short cmd_id, value; }
@@ -13,13 +15,18 @@
 .set PROG_SIZE, BYTES_PER_INSTR * MAX_INSTRS
 .set SBUF_SZ, 128
 
-.set NOP_CODE, 0
-.set JMP_CODE, 1
-.set ACC_CODE, 2
+.set NO_CODE, 0
+.set NOP_CODE, 1
+.set JMP_CODE, 2
+.set ACC_CODE, 3
 
 fmt: .string "@\n"
 
 main:
+    # r12 for storing part2
+    xor %r12, %r12
+    call part2set
+    setc %r12b
 
     # Read the program    
     lea program-4(%rip), %r13
@@ -29,10 +36,63 @@ main:
     call read_instr
     jnc .Lmoreinstrs
 
+    test %r12, %r12
+    jne .Lpart2
+
+    # Part1: Run and print
+    call execute_program
+    jmp .Lprintresult
+
+    # Part2: Loop... And modify instructions!
+.Lpart2: 
+    
+    lea program-4(%rip), %r13
+
+.Ltryloop:
+    add $4, %r13
+    movw (%r13), %ax # Instr. code
+    movw %ax, %r14w # save old code
+    cmpw $NOP_CODE, %ax 
+    jne .Lnotanop
+    movw $JMP_CODE, (%r13)
+    jmp .Lexecute
+.Lnotanop:
+    cmpw $JMP_CODE, %ax
+    jne .Lnotajmp
+    movw $NOP_CODE, (%r13)
+.Lexecute:
+    call execute_program
+    jc .Lprintresult
+.Lnotajmp:
+    movw %r14w, (%r13)
+    jmp .Ltryloop
+
+.Lprintresult:
+    push %rax
+    lea fmt(%rip), %rdi
+    call printi
+    add $8, %rsp
+
+    ret
+
+# Execute program.
+# -> %rax: Accumulator value on exit or loop detection.
+# Carry flag set if exited normally (instead of inf. loop)
+execute_program:
+    # Zero the instr_execd array
+    lea instr_execd(%rip), %rdi
+    xor %rsi, %rsi
+    mov $MAX_INSTRS, %rdx
+    call blkset    
+
+    push %r13
+    push %r14
+
     # Execute the program while tracking executed instructions
     xor %r13, %r13
     xor %r14, %r14 # accumulator   
     xor %rax, %rax
+    
 
 .Lnext:
     # Check if current instruction is marked
@@ -46,6 +106,8 @@ main:
     lea program(%rip), %rsi
     lea (%rsi, %r13, 4), %rsi
     movw (%rsi), %ax
+    cmpw $NO_CODE, %ax
+    je .Lexited
     cmpw $NOP_CODE, %ax
     je .Lcont
     cmpw $JMP_CODE, %ax
@@ -64,11 +126,17 @@ main:
     jmp .Lnext
 
 .Lrepeated:
-    push %r14
-    lea fmt(%rip), %rdi
-    call printi
-    add $8, %rsp
+    clc
+    jmp .Lepi
 
+.Lexited:
+    stc
+    jmp .Lepi
+
+.Lepi:
+    mov %r14, %rax    
+    pop %r14
+    pop %r13
     ret
 
 # %rdi: Address to read instruction into.

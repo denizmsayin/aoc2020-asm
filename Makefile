@@ -16,4 +16,4 @@ day6: day6.o iolib.a strlib.a
 
 day7: day7.o iolib.a strlib.a
 
-day8: day8.o iolib.a
+day8: day8.o iolib.a strlib.a
