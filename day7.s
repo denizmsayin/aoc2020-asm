@@ -7,6 +7,7 @@
     .extern skipstr
     .extern skipwhite
     .extern blkset
+    .extern part2set
 
 # There are 18 adjectives and 33 colors.
 
@@ -38,7 +39,12 @@ fmt: .string "@\n"
 main:
     cmp $3, %rdi
     je .Lshowi
-    
+   
+    # %r12 for part1/2
+    xor %r12, %r12
+    call part2set
+    setc %r12b
+ 
     # Mark all bags empty to start off with.
     # NOTE: In the future, make 0 the empty value for simplicity.
     lea btable(%rip), %rdi
@@ -50,6 +56,9 @@ main:
 .Lmorebagstoread:
     call read_next_bag
     jnc .Lmorebagstoread
+
+    test %r12, %r12
+    jne .Lpart2
 
     # Good, now process!
     xor %r13, %r13
@@ -66,7 +75,16 @@ main:
     cmp $TOTAL_BAGS, %r13
     jl .Lcountshinygoldloop
 
-    push %r14
+    mov %r14, %rax
+    jmp .Lprintresult
+
+.Lpart2:
+    mov $SHINY_GOLD_ID, %rdi
+    call count_bags
+    dec %rax # don't count the shiny gold bag itself!
+
+.Lprintresult:    
+    push %rax
     lea fmt(%rip), %rdi
     call printi
     add $8, %rsp
@@ -126,6 +144,39 @@ contains_shiny_gold:
     jne .Lbagloop
     
     xor %rax, %rax
+    pop %r12
+    ret
+
+# %rdi: Bag index
+# -> %rax: number of contained bags
+# Once again, could memoize, but not necessary.
+count_bags:
+    # Need one register for the address, and another for the sum.
+    push %r12
+    push %r13
+
+    mov $1, %r13 # sum
+
+    imul $BAG_BYTE_SIZE, %rdi
+    lea btable(%rip), %r12
+    add %rdi, %r12
+    jmp .Lcb_check
+
+.Lcb_loop:
+    movw %ax, %di # Setup recursive count
+    call count_bags # rax now has count
+    movw 2(%r12), %di # put multiplier in di
+    imul %rdi, %rax # mult.
+    add %rax, %r13 # add to count
+    add $4, %r12 # advance in the array
+.Lcb_check:
+    movw (%r12), %ax
+    cmpw $NO_MORE_BAGS, %ax
+    jne .Lcb_loop
+
+.Lcb_ret:
+    mov %r13, %rax
+    pop %r13
     pop %r12
     ret
 
