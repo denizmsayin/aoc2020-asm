@@ -8,7 +8,9 @@
     .extern skipwhite
     .extern blkset
     .extern part2set
-
+    .extern binsearch_word
+    .extern binsearch_short
+    
 # There are 18 adjectives and 33 colors.
 
 # To simplify life, I need to map each of those strings
@@ -27,10 +29,11 @@
 
 .set NO_MORE_BAGS, 0xFFFF # all 1's, easy to set
 .set TOTAL_BAGS, 594
-.set SHINY_GOLD_ID, 40
+.set SHINY_GOLD_ID, 138
 .set BAG_BYTE_SIZE, 20
 .set BAG_ARRAY_SIZE, TOTAL_BAGS * BAG_BYTE_SIZE
 .set SBUF_SZ, 128
+.set NUM_ADJ_TYPES, 18
 .set NUM_BAG_TYPES, 33
 
 showi_fmt: .string "I: [@][@] = @ (+@)\n"
@@ -228,7 +231,7 @@ read_next_bag:
     je .Lnomorebags
     cmpb $'\n', %al
     jne .Lmorebags
-    
+  
     # No more bags! Store the end marker and return.
 .Lnomorebags:
     movw $NO_MORE_BAGS, (%r12)
@@ -244,7 +247,7 @@ get_next_bagi:
 	lea sbuf(%rip), %rdi
 	mov $SBUF_SZ, %rsi
 	call getstr
-    
+  
     test %rax, %rax
     jne .Lgotone
     stc
@@ -252,22 +255,26 @@ get_next_bagi:
 
 .Lgotone:
 
+    push %r12
+
 	movw sbuf(%rip), %di
 	call get_adji
-	mov %rax, %r8
-	
+	mov %rax, %r12
+
 	lea sbuf(%rip), %rdi
 	mov $SBUF_SZ, %rsi
 	call getstr
-	
+
 	movl sbuf(%rip), %edi
 	call get_bagi
 	mov %rax, %r9
 
-	mov %r8, %rax
+	mov %r12, %rax
+    mov %r12, %rdx
 	imul $NUM_BAG_TYPES, %rax
 	add %r9, %rax
 
+    pop %r12
     clc
     ret
 
@@ -279,251 +286,86 @@ showi:
     push %r11
 	push %rax
 	push %r9
-	push %r8
+	push %rdx
 	lea showi_fmt(%rip), %rdi
     call printi
     add $32, %rsp
 
     ret
 
-	
-
 # For adjectives, we can decide by interpreting the first
 # two bytes only; as a word. 
 get_adji:
-    cmpw $0x6c63, %di
-    jl .Ladj0
-    jg .Ladj1
-    movw $0, %ax
-    ret
-.Ladj0:
-    cmpw $0x6873, %di
-    jl .Ladj00
-    jg .Ladj01
-    movw $1, %ax
-    ret
-.Ladj00:
-    cmpw $0x6170, %di
-    jl .Ladj000
-    jg .Ladj001
-    movw $2, %ax
-    ret
-.Ladj000:
-    cmpw $0x6166, %di
-    jl .Ladj0000
-    movw $3, %ax
-    ret
-.Ladj0000:
-    movw $4, %ax
-    ret
-.Ladj001:
-    movw $5, %ax
-    ret
-.Ladj01:
-    cmpw $0x696d, %di
-    jl .Ladj010
-    jg .Ladj011
-    movw $6, %ax
-    ret
-.Ladj010:
-    cmpw $0x696c, %di
-    jl .Ladj0100
-    movw $7, %ax
-    ret
-.Ladj0100:
-    movw $8, %ax
-    ret
-.Ladj011:
-    movw $9, %ax
-    ret
-.Ladj1:
-    cmpw $0x7264, %di
-    jl .Ladj10
-    jg .Ladj11
-    movw $10, %ax
-    ret
-.Ladj10:
-    cmpw $0x6f70, %di
-    jl .Ladj100
-    jg .Ladj101
-    movw $11, %ax
-    ret
-.Ladj100:
-    cmpw $0x6f64, %di
-    jl .Ladj1000
-    movw $12, %ax
-    ret
-.Ladj1000:
-    movw $13, %ax
-    ret
-.Ladj101:
-    movw $14, %ax
-    ret
-.Ladj11:
-    cmpw $0x7564, %di
-    jl .Ladj110
-    jg .Ladj111
-    movw $15, %ax
-    ret
-.Ladj110:
-    movw $16, %ax
-    ret
-.Ladj111:
-    movw $17, %ax
+    lea adj_values(%rip), %rsi
+    mov $NUM_ADJ_TYPES, %rdx
+    call binsearch_short
     ret
 
 # Bags are a bit more painful: 2 bytes are not enough to disambiguate, so I get 4.
 # This is fine since the shortest bag names have 3 characters; I can treat the
 # null char (0) as the 4th to complete a 4-byte value.
 get_bagi:
-    cmpl $0x6c6c6579, %edi
-    jl .Lbag0
-    jg .Lbag1
-    movl $0, %eax
-    ret
-.Lbag0:
-    cmpl $0x6567616d, %edi
-    jl .Lbag00
-    jg .Lbag01
-    movl $1, %eax
-    ret
-.Lbag00:
-    cmpl $0x61757161, %edi
-    jl .Lbag000
-    jg .Lbag001
-    movl $2, %eax
-    ret
-.Lbag000:
-    cmpl $0x616d6f74, %edi
-    jl .Lbag0000
-    jg .Lbag0001
-    movl $3, %eax
-    ret
-.Lbag0000:
-    cmpl $0x6e6174, %edi
-    jl .Lbag00000
-    movl $4, %eax
-    ret
-.Lbag00000:
-    movl $5, %eax
-    ret
-.Lbag0001:
-    movl $6, %eax
-    ret
-.Lbag001:
-    cmpl $0x646c6f67, %edi
-    jl .Lbag0010
-    jg .Lbag0011
-    movl $7, %eax
-    ret
-.Lbag0010:
-    movl $8, %eax
-    ret
-.Lbag0011:
-    movl $9, %eax
-    ret
-.Lbag01:
-    cmpl $0x67696562, %edi
-    jl .Lbag010
-    jg .Lbag011
-    movl $10, %eax
-    ret
-.Lbag010:
-    cmpl $0x65756c62, %edi
-    jl .Lbag0100
-    jg .Lbag0101
-    movl $11, %eax
-    ret
-.Lbag0100:
-    movl $12, %eax
-    ret
-.Lbag0101:
-    movl $13, %eax
-    ret
-.Lbag011:
-    cmpl $0x69646e69, %edi
-    jl .Lbag0110
-    jg .Lbag0111
-    movl $14, %eax
-    ret
-.Lbag0110:
-    movl $15, %eax
-    ret
-.Lbag0111:
-    movl $16, %eax
-    ret
-.Lbag1:
-    cmpl $0x70727570, %edi
-    jl .Lbag10
-    jg .Lbag11
-    movl $17, %eax
-    ret
-.Lbag10:
-    cmpl $0x6e61726f, %edi
-    jl .Lbag100
-    jg .Lbag101
-    movl $18, %eax
-    ret
-.Lbag100:
-    cmpl $0x6d6c6173, %edi
-    jl .Lbag1000
-    jg .Lbag1001
-    movl $19, %eax
-    ret
-.Lbag1000:
-    cmpl $0x6d697263, %edi
-    jl .Lbag10000
-    movl $20, %eax
-    ret
-.Lbag10000:
-    movl $21, %eax
-    ret
-.Lbag1001:
-    movl $22, %eax
-    ret
-.Lbag101:
-    cmpl $0x6e6f7262, %edi
-    jl .Lbag1010
-    jg .Lbag1011
-    movl $23, %eax
-    ret
-.Lbag1010:
-    movl $24, %eax
-    ret
-.Lbag1011:
-    movl $25, %eax
-    ret
-.Lbag11:
-    cmpl $0x76696c6f, %edi
-    jl .Lbag110
-    jg .Lbag111
-    movl $26, %eax
-    ret
-.Lbag110:
-    cmpl $0x72616863, %edi
-    jl .Lbag1100
-    jg .Lbag1101
-    movl $27, %eax
-    ret
-.Lbag1100:
-    movl $28, %eax
-    ret
-.Lbag1101:
-    movl $29, %eax
-    ret
-.Lbag111:
-    cmpl $0x776f7262, %edi
-    jl .Lbag1110
-    jg .Lbag1111
-    movl $30, %eax
-    ret
-.Lbag1110:
-    movl $31, %eax
-    ret
-.Lbag1111:
-    movl $32, %eax
+    lea bag_values(%rip), %rsi
+    mov $NUM_BAG_TYPES, %rdx
+    call binsearch_word
     ret
 
 	.data
 sbuf: .fill SBUF_SZ 
 btable: .fill BAG_ARRAY_SIZE
+
+adj_values:
+    .word 0x6164
+    .word 0x6166
+    .word 0x6170
+    .word 0x6177
+    .word 0x6873
+    .word 0x6964
+    .word 0x696c
+    .word 0x696d
+    .word 0x6976
+    .word 0x6c63
+    .word 0x6c70
+    .word 0x6f64
+    .word 0x6f70
+    .word 0x7262
+    .word 0x7264
+    .word 0x7473
+    .word 0x7564
+    .word 0x756d
+
+bag_values:
+    .long 0x00646572
+    .long 0x006e6174
+    .long 0x616d6f74
+    .long 0x61726f63
+    .long 0x61757161
+    .long 0x63616c62
+    .long 0x646c6f67
+    .long 0x65657267
+    .long 0x6567616d
+    .long 0x656d696c
+    .long 0x65756c62
+    .long 0x6576616c
+    .long 0x67696562
+    .long 0x68637566
+    .long 0x69646e69
+    .long 0x6c616574
+    .long 0x6c6c6579
+    .long 0x6c6f6976
+    .long 0x6d697263
+    .long 0x6d6c6173
+    .long 0x6d756c70
+    .long 0x6e61726f
+    .long 0x6e617963
+    .long 0x6e6f7262
+    .long 0x6f72616d
+    .long 0x70727570
+    .long 0x71727574
+    .long 0x72616863
+    .long 0x74696877
+    .long 0x76696c6f
+    .long 0x766c6973
+    .long 0x776f7262
+    .long 0x79617267
+

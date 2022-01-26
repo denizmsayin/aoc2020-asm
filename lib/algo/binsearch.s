@@ -1,4 +1,3 @@
-    .global binsearch
     .global binsearch_long
     .global binsearch_word
     .global binsearch_short

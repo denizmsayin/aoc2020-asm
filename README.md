@@ -14,6 +14,5 @@ $ ./day2 1  # runs part 1
 $ ./day2 2  # runs part 2
 ```
 
-I did write some _code generators_ in other languages. So far:
-- Used a mix of python and C to generate binary-search like comparison tables for hashing
-    strings in day 7: the functions `get_adji` and `get_bagi`.
+Utilities in other languages for helping with development (under `utils/`):
+* `str2val`: A tiny C program that shows first 1/2/4/8 bytes of strings as integers.
