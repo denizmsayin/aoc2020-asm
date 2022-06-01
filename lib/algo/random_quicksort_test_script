@@ -1,0 +1,22 @@
+#! /bin/bash
+
+if [ "$#" != 2 ]; then
+  echo "usage: $0 n_tests n_values"
+  exit 1
+fi
+
+tmp=$(mktemp)
+for i in $(seq 1 "$1"); do
+  printf '\r%d/%d' "$i" "$1"
+  for j in $(seq 1 "$2"); do
+    echo "$(($RANDOM))" >> "$tmp"
+  done
+  if ! wdiff <(sort -n < "$tmp" &> /dev/null) <(./quicksort_test < "$tmp" &> /dev/null); then
+    echo "FAILED! Check $tmp for the array."
+    exit 1
+  fi
+done
+echo
+
+echo "SUCCESS!"
+rm -f "$tmp"
