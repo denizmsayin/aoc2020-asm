@@ -1,15 +1,18 @@
 #! /bin/bash
 
 tmpfile=$(mktemp)
-for day in day[0-9]; do
-  for p in 1 2; do
-    printf '%5s part%d: ' "$day" "$p"
-    ./$day "$p" < input/"$day".txt > "$tmpfile"
-    if diff -w "$tmpfile" output/"$day"_part"$p".txt &> /dev/null; then
-      verdict='\033[32m+\033[0m' # green colored +
-    else
-      verdict='\033[31m-\033[0m' # red colored -
-    fi
-    printf "$verdict\n"
-  done
+for d in {0..25}; do
+  day="day$d"
+  if [ -e "$day" ]; then
+    for p in 1 2; do
+      printf '%5s part%d: ' "$day" "$p"
+      ./$day "$p" < input/"$day".txt > "$tmpfile"
+      if diff -w "$tmpfile" output/"$day"_part"$p".txt &> /dev/null; then
+        verdict='\033[32m+\033[0m' # green colored +
+      else
+        verdict='\033[31m-\033[0m' # red colored -
+      fi
+      printf "$verdict\n"
+    done
+  fi
 done

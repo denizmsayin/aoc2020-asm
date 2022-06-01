@@ -33,12 +33,18 @@ main:
     add $3, %r8 # +3 and store as sentinel
     mov %r8, 8(%rdi)
     add $1, %r13 # add one more to length
-   
+  
+    # test for parts
+    test %r12, %r12
+    jne .Lpart2
+
+
+ 
     # part 1 is easy, just go through the values, and take care of the diffs
     xor %r8, %r8 # diff 1 count
     xor %r9, %r9 # diff 3 count
 
-    lea array(%rip), %rdi
+    mov %r15, %rdi
     lea -8(%rdi, %r13, 8), %rsi # end of array - 1
     jmp .Lck
 
@@ -63,6 +69,43 @@ main:
 
     imul %r8, %r9
     push %r9
+    jmp .Lformat
+
+
+
+.Lpart2:
+    # This part is dynamic programming. Just add possibilities bottom-up starting from 0
+    
+    mov %r15, %rdi
+    lea (%rdi, %r13, 8), %rsi # end of array - 1
+    lea counts(%rip), %rdx # possibility counts
+    movq $1, (%rdx) # 1 for outlet with 0 initially
+    jmp .Lck2
+
+.Lloop2:
+    mov (%rdi), %rax # get the current value
+    lea (%rdx, %rax, 8), %rcx # &counts[value]
+    mov (%rcx), %r8 # counts[value]
+    
+    # add counts[value] to +1, +2, +3
+    add %r8, 8(%rcx)
+    add %r8, 16(%rcx)
+    add %r8, 24(%rcx)
+
+    add $8, %rdi
+.Lck2:
+    cmp %rdi, %rsi
+    jne .Lloop2
+
+    # now need counts[final_value] to print
+    lea -8(%r15, %r13, 8), %rdi
+    mov (%rdi), %rax
+    lea (%rdx, %rax, 8), %rcx
+    pushq (%rcx)
+
+
+
+.Lformat:
     lea fmt(%rip), %rdi
     call printi
     add $8, %rsp
