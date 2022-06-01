@@ -1,6 +1,6 @@
 VPATH=$(shell find lib -type d)
 
-all: day1 day2 day3 day4 day5 day6 day7 day8 day9
+all: day1 day2 day3 day4 day5 day6 day7 day8 day9 day10
 
 day1: day1.o iolib.a
 
@@ -19,3 +19,5 @@ day7: day7.o iolib.a strlib.a algolib.a
 day8: day8.o iolib.a strlib.a
 
 day9: day9.o iolib.a
+
+day10: day10.o iolib.a algolib.a
